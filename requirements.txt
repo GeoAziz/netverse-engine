@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+python-dotenv
+firebase-admin
+scapy
+influxdb-client
+websockets
+python-multipart
+asyncio-mqtt
+redis
+python-dateutil
+mitmproxy
