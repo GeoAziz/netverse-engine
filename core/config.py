@@ -10,9 +10,11 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Zizo_NetVerse"
     API_V1_STR: str = "/api/v1"
 
-    # API Keys - Made optional to prevent crashing on startup in deployment
+    # API Keys & Secrets - Made optional to prevent crashing on startup
     GEMINI_API_KEY: Optional[str] = None
     FIREBASE_PROJECT_ID: Optional[str] = None
+    # New variable for cloud environments to hold the entire JSON content
+    FIREBASE_SERVICE_ACCOUNT_JSON: Optional[str] = None
     
     # InfluxDB Configuration
     INFLUXDB_URL: str = "http://localhost:8086"
