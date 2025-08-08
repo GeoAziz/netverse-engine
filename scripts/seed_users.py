@@ -1,3 +1,4 @@
+
 # src/backend/scripts/seed_users.py
 
 import sys
@@ -37,7 +38,7 @@ USERS_TO_CREATE = [
 
 async def seed_users():
     """
-    Creates predefined users in Firebase Authentication with custom roles.
+    Creates predefined users in Firebase Authentication with custom roles and syncs to Firestore.
     If a user already exists, it updates their role and display name.
     """
     print("🔥 Initializing Firebase Admin SDK...")
@@ -51,6 +52,7 @@ async def seed_users():
         password = user_def["password"]
         role = user_def["role"]
         display_name = user_def["display_name"]
+        uid = None
 
         try:
             # Check if user exists
@@ -61,7 +63,6 @@ async def seed_users():
             # Update custom claims (role)
             auth.set_custom_user_claims(user.uid, {'role': role})
             print(f"✅ Successfully updated {email} to role '{role}'.")
-            print(f"ℹ️  [INFO] Credentials for {email}: password='{password}' (for backend seeding only)")
             uid = user.uid
         except auth.UserNotFoundError:
             # User does not exist, create them
@@ -76,7 +77,6 @@ async def seed_users():
                 # Set the custom claim for the new user
                 auth.set_custom_user_claims(new_user.uid, {'role': role})
                 print(f"✅ Successfully created new user {email} (UID: {new_user.uid}) with role '{role}'.")
-                print(f"ℹ️  [INFO] Credentials for {email}: password='{password}' (for backend seeding only)")
                 uid = new_user.uid
             except Exception as e:
                 print(f"❌ Error creating user {email}: {e}")
@@ -84,19 +84,22 @@ async def seed_users():
         except Exception as e:
             print(f"❌ An unexpected error occurred for user {email}: {e}")
             continue
+        finally:
+            print(f"ℹ️  [INFO] Credentials for {email}: password='{password}' (for backend seeding only)")
 
-        # Ensure user exists in Firestore database
-        try:
-            user_doc_ref = db.collection("users").document(uid)
-            user_doc_ref.set({
-                "uid": uid,
-                "email": email,
-                "role": role,
-                "display_name": display_name,
-            }, merge=True)
-            print(f"✅ Firestore user document ensured for {email} (uid: {uid})")
-        except Exception as e:
-            print(f"⚠️  Firestore error for {email}: {e}")
+        # Ensure user exists in Firestore database, syncing details
+        if uid:
+            try:
+                user_doc_ref = db.collection("users").document(uid)
+                user_doc_ref.set({
+                    "uid": uid,
+                    "email": email,
+                    "role": role,
+                    "display_name": display_name,
+                }, merge=True)
+                print(f"✅ Firestore user document ensured for {email} (uid: {uid})")
+            except Exception as e:
+                print(f"⚠️  Firestore error for {email}: {e}")
         print("-" * 30)
     
     print("🚀 User seeding process complete!")

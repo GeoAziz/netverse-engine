@@ -1,18 +1,18 @@
 # src/backend/core/config.py
 
-from pydantic_settings import BaseSettings  # <-- updated import
-from typing import List
+from pydantic_settings import BaseSettings
+from typing import List, Optional
 import os
 
 
 class Settings(BaseSettings):
     # Project Info
     PROJECT_NAME: str = "Zizo_NetVerse"
-    API_V1_STR: str = "/api/v1"  # <-- Add this line
+    API_V1_STR: str = "/api/v1"
 
-    # API Keys
-    GEMINI_API_KEY: str
-    FIREBASE_PROJECT_ID: str
+    # API Keys - Made optional to prevent crashing on startup in deployment
+    GEMINI_API_KEY: Optional[str] = None
+    FIREBASE_PROJECT_ID: Optional[str] = None
     
     # InfluxDB Configuration
     INFLUXDB_URL: str = "http://localhost:8086"
@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     CAPTURE_ENABLED: bool = True
     
     # CORS Origins (comma-separated string)
-    BACKEND_CORS_ORIGINS: str = "http://localhost:3000"
+    BACKEND_CORS_ORIGINS: str = "http://localhost:3000,http://localhost:9002"
     
     @property
     def cors_origins_list(self) -> List[str]:
@@ -36,8 +36,8 @@ class Settings(BaseSettings):
         return [origin.strip() for origin in self.BACKEND_CORS_ORIGINS.split(",")]
     
     class Config:
-        # Read from root .env file
-        env_file = "../../.env"
+        # Read from root .env file if it exists
+        env_file = ".env"
         env_file_encoding = "utf-8"
         # Allow extra fields for flexibility
         extra = "allow"
